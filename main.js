@@ -31,6 +31,11 @@ app.use(session({
   saveUninitialized: true,
   store:new FileStore()
 }))
+var authData = {
+  email : 'qqfelix@naver.com',
+  password : '111111', 
+  nickname : 'yongdoll'
+}
 // passport 는 session을 이용하기 때문에 반드시 session을 사용하는 code 보다 아래에 나와야 함.
 var passport = require('passport')
 , LocalStrategy = require('passport-local').Strategy;
@@ -40,6 +45,39 @@ app.post('/auth/login_process',
       successRedirect: '/',
       failureRedirect : '/auth/login'
     }));
+passport.use(new LocalStrategy({
+  usernameField : 'email',
+  passwordField : 'pwd'
+  // default value -> username..: 'username' / password : 'password'
+},  
+
+  function(username, password, done){
+    console.log('LocalStrategy', username, password); 
+    if(username === authData.email){
+      console.log(1)
+        if(password === authData.password){
+          console.log(2)
+
+          return done(null, authData);
+        }
+        else{
+          console.log(3)
+
+              return done(null, false, {
+          message: 'Incorrect password'
+        });
+        }
+    }
+    else{
+      console.log(4)
+
+      return done(null, false, {
+        message: 'Incorrect username'
+      })
+    }
+  }
+));
+
 
 app.get('*',function (request, response, next) {
   // * : 모든요청 / 만약 그냥 app.use로 썼다면 post 방식에 대해서도 작동하므로 비효율적임.
