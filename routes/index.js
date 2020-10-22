@@ -6,6 +6,7 @@ var auth = require('../lib/auth')
 
 router.get('/', function (request, response) {
   console.log('/', request.user);
+  // passport를 사용하게 되면  request에 user 객체를 주입해줌.
   var title = 'Welcome';
   var description = 'Hello, Node.js';
   var list = template.list(request.list)

@@ -49,7 +49,7 @@ passport.serializeUser(function(user,done){
   done(null,user.email);
 })
 passport.deserializeUser(function(id,done){
-  // 방문한 사람이 로그인했는지 안했는지 체크하는 함수.(우리가 필요한 정보를 조회할 때마다 호출)
+  // sesstion store 에 접근해 방문한 사람이 로그인한 사용자인지 아닌지 체크하는 함수.(우리가 필요한 정보를 조회할 때마다 호출)
   console.log('deserializeUser',id);
   done(null,authData);
 })
