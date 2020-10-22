@@ -36,21 +36,29 @@ var authData = {
   password : '111111', 
   nickname : 'yongdoll'
 }
+
 // passport 는 session을 이용하기 때문에 반드시 session을 사용하는 code 보다 아래에 나와야 함.
 var passport = require('passport')
 , LocalStrategy = require('passport-local').Strategy;
+app.use(passport.initialize());
+app.use(passport.session());
 
-app.post('/auth/login_process',
-    passport.authenticate('local', {
-      successRedirect: '/',
-      failureRedirect : '/auth/login'
-    }));
+passport.serializeUser(function(user,done){
+  // 로그인에 성공했을때, 로그인에 성공한 사실을 session store에 저장하는 역할.(1번만 호출)
+  console.log('serializeUser',user);
+  done(null,user.email);
+})
+passport.deserializeUser(function(id,done){
+  // 방문한 사람이 로그인했는지 안했는지 체크하는 함수.(우리가 필요한 정보를 조회할 때마다 호출)
+  console.log('deserializeUser',id);
+  done(null,authData);
+})
+
 passport.use(new LocalStrategy({
   usernameField : 'email',
   passwordField : 'pwd'
   // default value -> username..: 'username' / password : 'password'
 },  
-
   function(username, password, done){
     console.log('LocalStrategy', username, password); 
     if(username === authData.email){
@@ -77,7 +85,11 @@ passport.use(new LocalStrategy({
     }
   }
 ));
-
+app.post('/auth/login_process',
+    passport.authenticate('local', {
+      successRedirect: '/',
+      failureRedirect : '/auth/login'
+    }));
 
 app.get('*',function (request, response, next) {
   // * : 모든요청 / 만약 그냥 app.use로 썼다면 post 방식에 대해서도 작동하므로 비효율적임.
