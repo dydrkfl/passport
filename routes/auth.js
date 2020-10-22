@@ -5,18 +5,18 @@ var fs = require('fs');
 var sanitizeHtml = require('sanitize-html');
 var template = require('../lib/template');
 
-var authData = {
-  email: 'qqfelix@naver.com',
-  password: '111111',
-  nickname: 'yongdoll'
-}
+module.exports = function (passport) {
 
-
-
-router.get('/login', function (request, response) {
-  var title = 'WEB - login';
-  var list = template.list(request.list);
-  var html = template.HTML(title, list, `
+  router.get('/login', function (request, response) {
+    var fmsg = request.flash();
+    var feedback = '';
+    if (fmsg.error) {
+      feedback = fmsg.error[0];
+    }
+    var title = 'WEB - login';
+    var list = template.list(request.list);
+    var html = template.HTML(title, list, `
+    <div style="color:red;">${feedback}</div>
     <form action="/auth/login_process" method="post">
       <p><input type="text" name="email" placeholder="email"></p>
       <p><input type="password" name="pwd" placeholder="password"></p>
@@ -26,14 +26,22 @@ router.get('/login', function (request, response) {
       </p>
     </form>
   `, '');
-  response.send(html);
+    response.send(html);
 
-});
-router.get('/logout', function (request, response) {
-  request.logOut();
-  request.session.save(function (err) {
-    response.redirect('/');
-  })
-});
+  });
+  router.post('/login_process',
+    passport.authenticate('local', {
+      successRedirect: '/',
+      failureRedirect: '/auth/login',
+      failureFlash: true,
+      successFlash: true
 
-module.exports = router;
+    }));
+  router.get('/logout', function (request, response) {
+    request.logOut();
+    request.session.save(function (err) {
+      response.redirect('/');
+    })
+  });
+  return router;
+}
