@@ -31,7 +31,15 @@ app.use(session({
   saveUninitialized: true,
   store:new FileStore()
 }))
+// passport 는 session을 이용하기 때문에 반드시 session을 사용하는 code 보다 아래에 나와야 함.
+var passport = require('passport')
+, LocalStrategy = require('passport-local').Strategy;
 
+app.post('/auth/login_process',
+    passport.authenticate('local', {
+      successRedirect: '/',
+      failureRedirect : '/auth/login'
+    }));
 
 app.get('*',function (request, response, next) {
   // * : 모든요청 / 만약 그냥 app.use로 썼다면 post 방식에 대해서도 작동하므로 비효율적임.
