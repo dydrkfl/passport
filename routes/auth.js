@@ -7,7 +7,11 @@ var template = require('../lib/template');
 var shortid = require('shortid');
 
 
-var db = require('../lib/db')
+var db = require('../lib/db');
+const {
+  request
+} = require("express");
+var bcrypt = require('bcrypt');
 
 module.exports = function (passport) {
 
@@ -41,15 +45,15 @@ module.exports = function (passport) {
       successFlash: true
 
     }));
-    router.get('/register', function (request, response) {
-      var fmsg = request.flash();
-      var feedback = '';
-      if (fmsg.error) {
-        feedback = fmsg.error[0];
-      }
-      var title = 'WEB - login';
-      var list = template.list(request.list);
-      var html = template.HTML(title, list, `
+  router.get('/register', function (request, response) {
+    var fmsg = request.flash();
+    var feedback = '';
+    if (fmsg.error) {
+      feedback = fmsg.error[0];
+    }
+    var title = 'WEB - login';
+    var list = template.list(request.list);
+    var html = template.HTML(title, list, `
       <div style="color:red;">${feedback}</div>
       <form action="/auth/register_process" method="post" >
         <p><input type="text" name="email" placeholder="email" value="qqfelix@naver.com"></p>
@@ -62,35 +66,38 @@ module.exports = function (passport) {
         </p>
       </form>
     `, '');
-      response.send(html);
-  
-    });
-    
+    response.send(html);
+
+  });
+
   router.post('/register_process', function (request, response) {
     var post = request.body;
     var email = post.email;
     var pwd = post.pwd;
     var pwd2 = post.pwd2;
     var displayName = post.displayName;
-    if(pwd !==pwd2){
+    if (pwd !== pwd2) {
       request.flash('error', 'Password must same!');
       response.redirect('/auth/register');
 
-    }else{
-      var user ={
-        id: shortid.generate(),
-        email: email,
-        password: pwd,
-        displayName: displayName
-      }
-      db.get('users').push(user).write();
-      request.login(user, function(err){
-        
-        return response.redirect('/');
+    } else {
+      bcrypt.hash(pwd, 10, function (err, hash) {
+        var user = {
+          id: shortid.generate(),
+          email: email,
+          password: hash,
+          displayName: displayName
+        }
+        db.get('users').push(user).write();
+        request.login(user, function (err) {
 
-      })
+          return response.redirect('/');
+
+        })
+      });
+
     }
-    
+
   })
 
   router.get('/logout', function (request, response) {
