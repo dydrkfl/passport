@@ -7,12 +7,7 @@ var template = require('../lib/template');
 var shortid = require('shortid');
 
 
-const low = require('lowdb')
-const FileSync = require('lowdb/adapters/FileSync')
-
-const adapter = new FileSync('db.json')
-const db = low(adapter)
-db.defaults({users:[]}).write();
+var db = require('../lib/db')
 
 module.exports = function (passport) {
 
@@ -82,13 +77,18 @@ module.exports = function (passport) {
       response.redirect('/auth/register');
 
     }else{
-      db.get('users').push({
+      var user ={
         id: shortid.generate(),
         email: email,
         password: pwd,
         displayName: displayName
-      }).write();
-      response.redirect('/');
+      }
+      db.get('users').push(user).write();
+      request.login(user, function(err){
+        
+        return response.redirect('/');
+
+      })
     }
     
   })
