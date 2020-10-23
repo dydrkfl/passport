@@ -5,7 +5,7 @@ var bodyParser = require('body-parser')
 var compression = require('compression');
 var session = require('express-session')
 var LokiStore = require('connect-loki')(session)
-
+var db = require('./lib/db');
 
 var helmet = require('helmet')
 app.use(helmet());
@@ -52,13 +52,10 @@ var passport = require('./lib/passport')(app);
 
 app.get('*', function (request, response, next) {
   // * : 모든요청 / 만약 그냥 app.use로 썼다면 post 방식에 대해서도 작동하므로 비효율적임.
-
-  fs.readdir('./data', function (error, filelist) {
-    request.list = filelist;
+  request.list = db.get('topics').value();
+ 
     next();
 
-
-  });
 
 })
 
